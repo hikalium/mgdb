@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=9">
+<meta charset="UTF-8">
+<meta name="viewport" content="user-scalable=no">
+<title>MGDB ServerConsole</title>
+<script src="http://use.edgefonts.net/source-code-pro.js"></script>
+<link href="css/bootstrap.min.css" rel="stylesheet">
+<link href="css/mgcanvas.css" rel="stylesheet">
+<script src="./js/net.js"></script>
+<script src="./js/ext.js"></script>
+<script type="text/javascript">
+
+var DBCons;
+onload = function() {
+	DBCons = new MGDatabaseServerConsole("inputBox", "outputBox");
+	var box;
+	var btn;
+	box = document.getElementById("ncontBox");
+	document.getElementById("btn_new_node").onclick = function(){
+		DBCons.addAtomElement(box.value);
+	}
+	document.getElementById("btn_get_all_atom").onclick = function(){
+		DBCons.getAllAtomElement();
+	}
+	
+}
+
+// PUT 
+
+MGDBArray = function(baseArray){
+	// contentsはURIエンコードされた状態で格納されている。
+	MGDBArray.base.apply(this, []);
+	if(baseArray && baseArray instanceof Array){
+		for(var i = 0; i < baseArray.length; i++){
+			this.push(baseArray[i]);
+		}
+	}
+}.extend(Array, {
+	addAtomElement: function(id, contents){
+		this.push([id, encodeURIComponent(contents)]);
+	},
+	getElementByID: function(id){
+		return this.includes(id, this.getElementByID_fEqualTo);
+	},
+	getElementByID_fEqualTo: function(a, b){
+		if(a instanceof Array && a[0] == b){
+			return (a[0] == b);
+		}
+		return false;
+	},
+	getReadableStringRepForIndex: function(index){
+		return "[" + this[index][0] + ", " + decodeURIComponent(this[index][1]) + "]";
+	},
+});
+
+function MGDBServerConnection(){
+	var that = this;
+	//
+	this.nman = new NetworkManager();
+	this.baseURL = "";
+}
+MGDBServerConnection.prototype = {
+	UUID_ServerResponse:	"3b56defa-eddd-4ad3-86d1-6dcbe3d6731c",
+	UUID_ServerTimestamp:	"3f5f1aee-40e9-48f3-b047-b9e51f12015c",
+	UUID_RequestStatusCode:	"c7bd7453-8c77-45e9-b460-516ba7dbb8f5",
+	UUID_RequestStatusText:	"dea8d8ae-014d-4d1e-a161-d466982106b1",
+	separatorList: [
+		" ",
+		",",
+		"(",
+		")",
+	],
+	actionList: [
+		"select",
+		"insert",
+		"update",
+		"delete",
+		"ping",
+	],
+	sendQuery: function(method, relurl, callback, data){
+		// callback: function(responseArray)
+		var that = this;
+		var res = this.nman.sendRequestAsync(method, this.baseURL + relurl, data, function(sc, st, rs){ that.receiveResponse(sc, st, rs, callback); });
+	},
+	receiveResponse: function(statusCode, statusText, res, callback){
+		var resArray;
+		try{
+			resArray = new MGDBArray(eval(res));
+			resArray.addAtomElement(this.UUID_RequestStatusCode, statusCode);
+			resArray.addAtomElement(this.UUID_RequestStatusText, statusText);
+		} catch(e){
+			resArray = new MGDBArray();
+			resArray.addAtomElement(this.UUID_ServerResponse, res);
+		}
+		if(callback instanceof Function){
+			callback(resArray);
+		}
+	},
+	addAtomElement: function(contents, callback){
+		// callback: function(responseArray)
+		// PUT atom/add?contents=contentsStr
+		var o = new Object();
+		o["contents"] = contents;
+		this.sendQuery("POST", "atom/add", callback, o);
+	},
+	getAllAtomElement: function(callback){
+		// callback: function(responseArray)
+		// GET atom
+		this.sendQuery("GET", "atom", callback, null);
+	},
+}
+
+function MGDatabaseServerConsole(inputElementID, outputElementID){
+	var that = this;
+	//
+	this.db = new MGDBServerConnection();
+	this.inBox = document.getElementById(inputElementID);
+	this.outBox = document.getElementById(outputElementID);
+	this.isWaitingForServerResponse = false;
+	//
+	var inBox = this.inBox;
+	inBox.onkeydown = function(e){
+		//Enterで送信
+		//Shift+Enterで改行
+		if (e.keyCode == 13){ // Enterが押された
+			if(!e.shiftKey){
+				e.preventDefault();
+				var m = inBox.value.indexOf(" ");
+				try{
+					that.db.sendQuery(inBox.value.substr(0, m), inBox.value.substr(m).trim(), function(sc, str){ that.receiveResponse(sc, str) });
+				} catch(e){
+					that.print(e + "\n");
+					return;
+				}
+				that.print("> " + inBox.value + "\n");
+				that.print("**** " + Date.now() + " Query sended.\n");
+				inBox.value = '';
+			}
+		}
+	}
+}
+MGDatabaseServerConsole.prototype = {
+	print: function(str){
+		if(this.outBox){
+			this.outBox.value += str;
+			this.outBox.scrollTop = this.outBox.scrollHeight;
+		}
+	},
+	receiveResponse: function(resArray){
+		this.print("**** " + Date.now() + " Receive response.\n");
+		var c;
+		if(c = resArray.getElementByID(this.db.UUID_RequestStatusCode)){
+			this.print("StatusCode: " + decodeURIComponent(c[1]) + "\n");
+		}
+		if(c = resArray.getElementByID(this.db.UUID_RequestStatusText)){
+			this.print("StatusText: " + decodeURIComponent(c[1]) + "\n");
+		}
+		if(c = resArray.getElementByID(this.db.UUID_ServerTimestamp)){
+			this.print("Server time: " + decodeURIComponent(c[1]) + "\n");
+		}
+		if(c = resArray.getElementByID(this.db.UUID_ServerResponse)){
+			this.print("Server response: " + decodeURIComponent(c[1]) + "\n");
+		}
+		for(var i = 0; i < resArray.length; i++){
+			this.print(resArray.getReadableStringRepForIndex(i) + "\n");
+		}
+	},
+	receiveResponse_fEqualTo: function(a, b){
+		if(a instanceof Array && a[0] == b){
+			return (a[0] == b);
+		}
+		return false;
+	},
+	addAtomElement: function(contents){
+		var that = this;
+		try{
+			this.db.addAtomElement(contents, function(sc, str){ that.receiveResponse(sc, str) });
+		} catch(e){
+			this.print(e + "\n");
+			return;
+		}
+		this.print("> add Atom element [" + contents + "]\n");
+		this.print("**** " + Date.now() + " Query sended.\n");
+	},
+	getAllAtomElement: function(){
+		var that = this;
+		try{
+			this.db.getAllAtomElement(function(sc, str){ that.receiveResponse(sc, str) });
+		} catch(e){
+			this.print(e + "\n");
+			return;
+		}
+		this.print("> get All Atom element\n");
+		this.print("**** " + Date.now() + " Query sended.\n");
+	},
+};
+
+</script>
+</head>
+<body ontouchmove="event.preventDefault()">
+<div class="navbar navbar-fixed-top" role="navigation">
+	<div class="container-fluid">
+		<div class="navbar-header">
+			<a class="navbar-brand" href="#">MGDB ServerConsole</a>
+		</div>
+	</div>
+</div>
+
+<div class="container" style="padding-top: 64px;">
+	<h4>Query</h4>
+	<h5>Add Atom Element</h5>
+	<div class="input-group">
+	<input id="ncontBox" type="text" class="form-control" placeholder="New Contents">
+	<span class="input-group-btn"><button id="btn_new_node" class="btn btn-primary" type="button">Add</button></span>
+	</div>
+	<h5>Get Atom Element by ID</h5>
+	<div class="input-group">
+	<input id="ncontBox" type="text" class="form-control" placeholder="New Contents">
+	<span class="input-group-btn"><button id="btn_new_node" class="btn btn-primary" type="button">Add</button></span>
+	</div>
+	<button id="btn_get_all_atom" class="btn btn-primary" type="button">GetAllAtomElement</button>
+	<h4>Input</h4>
+	<textarea class="form-control" id="inputBox"></textarea>
+	<h4>Output</h4>
+	<textarea class="form-control" id="outputBox" style="height: 500px;"></textarea>
+</div>
+</body>
+</html>
