@@ -36,11 +36,15 @@ Array.prototype.removeAllObject = function(anObject){
 	}
 	return ret;
 }
-Array.prototype.removeAnObject = function(anObject){
+Array.prototype.removeAnObject = function(anObject, fEqualTo){
 	//Array中にある最初のanObjectを削除し、空いた部分は前につめる。
+	//fEqualToは省略可能で、評価関数fEqualTo(array[i], obj)を設定する。
 	//戻り値は削除が実行されたかどうか
+	if(!(fEqualTo instanceof Function)){
+		fEqualTo = function(a, b){ return (a == b); };
+	}
 	for(var i = 0; i < this.length; i++){
-		if(this[i] == anObject){
+		if(fEqualTo(this[i], anObject)){
 			this.splice(i, 1);
 			return true;
 		}

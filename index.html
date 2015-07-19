@@ -15,18 +15,16 @@
 var DBCons;
 onload = function() {
 	DBCons = new MGDatabaseServerConsole("inputBox", "outputBox");
-	var box;
-	var btn;
-	box = document.getElementById("ncontBox");
+	var ncontBox = document.getElementById("ncontBox");
 	document.getElementById("btn_new_node").onclick = function(){
-		DBCons.addAtomElement(box.value);
+		DBCons.addAtomElement(ncontBox.value);
 	}
 	document.getElementById("btn_get_all_atom").onclick = function(){
 		DBCons.getAllAtomElement();
 	}
-	box = document.getElementById("atomIdBox");
+	var atomIDBox = document.getElementById("atomIDBox");
 	document.getElementById("btn_get_atom_id").onclick = function(){
-		DBCons.getAtomElementByID(box.value);
+		DBCons.getAtomElementByID(atomIDBox.value);
 	}
 }
 
@@ -43,16 +41,26 @@ MGDBArray = function(baseArray){
 		this.push([id, encodeURIComponent(contents)]);
 	},
 	getElementByID: function(id){
-		return this.includes(id, this.getElementByID_fEqualTo);
+		return this.includes(id, this.fEqualTo_eid);
 	},
-	getElementByID_fEqualTo: function(a, b){
-		if(a instanceof Array && a[0] == b){
+	fEqualTo_eid: function(a, b){
+		if(a instanceof Array){
 			return (a[0] == b);
 		}
 		return false;
 	},
 	getReadableStringRepForIndex: function(index){
 		return "[" + this[index][0] + ", " + decodeURIComponent(this[index][1]) + "]";
+	},
+	removeElementByID: function(id){
+		this.removeAnObject(id, this.fEqualTo_eid);
+	},
+	popElementByID: function(id){
+		var retv = this.getElementByID(id);
+		if(retv){
+			this.removeElementByID(id);
+		}
+		return retv;
 	},
 });
 
@@ -157,16 +165,16 @@ MGDatabaseServerConsole.prototype = {
 	receiveResponse: function(resArray){
 		this.print("**** " + Date.now() + " Receive response.\n");
 		var c;
-		if(c = resArray.getElementByID(this.db.UUID_RequestStatusCode)){
+		if(c = resArray.popElementByID(this.db.UUID_RequestStatusCode)){
 			this.print("StatusCode: " + decodeURIComponent(c[1]) + "\n");
 		}
-		if(c = resArray.getElementByID(this.db.UUID_RequestStatusText)){
+		if(c = resArray.popElementByID(this.db.UUID_RequestStatusText)){
 			this.print("StatusText: " + decodeURIComponent(c[1]) + "\n");
 		}
-		if(c = resArray.getElementByID(this.db.UUID_ServerTimestamp)){
+		if(c = resArray.popElementByID(this.db.UUID_ServerTimestamp)){
 			this.print("Server time: " + decodeURIComponent(c[1]) + "\n");
 		}
-		if(c = resArray.getElementByID(this.db.UUID_ServerResponse)){
+		if(c = resArray.popElementByID(this.db.UUID_ServerResponse)){
 			this.print("Server response: " + decodeURIComponent(c[1]) + "\n");
 		}
 		this.print("----\n");
@@ -240,7 +248,7 @@ MGDatabaseServerConsole.prototype = {
 	<h5>Get Atom Element by ID</h5>
 	
 	<div class="input-group">
-	<input id="atomIdBox" type="text" class="form-control" placeholder="New Contents">
+	<input id="atomIDBox" type="text" class="form-control" placeholder="New Contents">
 	<span class="input-group-btn"><button id="btn_get_atom_id" class="btn btn-primary" type="button">Get</button></span>
 	</div>
 	<br />

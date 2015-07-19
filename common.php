@@ -75,6 +75,7 @@ define("HTTP_STATUS_OK",					"200");
 define("HTTP_STATUS_CREATED",				"201");
 define("HTTP_STATUS_BAD_REQUEST",			"400");
 define("HTTP_STATUS_NOT_FOUND",				"404");
+define("HTTP_STATUS_METHOD_NOT_ARROWED",	"405");
 define("HTTP_STATUS_INTERNAL_SERVER_ERROR",	"500");
 define("HTTP_STATUS_NOT_IMPLEMENTED",		"501");
 function reportError($ecode, $estr){

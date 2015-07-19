@@ -3,7 +3,7 @@
 
 require_once("../common.php");
 if($_SERVER["REQUEST_METHOD"] !== "GET"){
-	reportError(HTTP_STATUS_NOT_IMPLEMENTED, "You should use POST method to use this API.");
+	reportError(HTTP_STATUS_METHOD_NOT_ARROWED, "You should use GET method to use this API.");
 }
 
 $db = connectDB();
