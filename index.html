@@ -24,10 +24,11 @@ onload = function() {
 	document.getElementById("btn_get_all_atom").onclick = function(){
 		DBCons.getAllAtomElement();
 	}
-	
+	box = document.getElementById("atomIdBox");
+	document.getElementById("btn_get_atom_id").onclick = function(){
+		DBCons.getAtomElementByID(box.value);
+	}
 }
-
-// PUT 
 
 MGDBArray = function(baseArray){
 	// contentsはURIエンコードされた状態で格納されている。
@@ -110,6 +111,11 @@ MGDBServerConnection.prototype = {
 		// GET atom
 		this.sendQuery("GET", "atom", callback, null);
 	},
+	getAtomElementByID: function(id, callback){
+		// callback: function(responseArray)
+		// GET atom/id/UUID
+		this.sendQuery("GET", "atom/id/" + id, callback, null);
+	},
 }
 
 function MGDatabaseServerConsole(inputElementID, outputElementID){
@@ -163,9 +169,11 @@ MGDatabaseServerConsole.prototype = {
 		if(c = resArray.getElementByID(this.db.UUID_ServerResponse)){
 			this.print("Server response: " + decodeURIComponent(c[1]) + "\n");
 		}
+		this.print("----\n");
 		for(var i = 0; i < resArray.length; i++){
 			this.print(resArray.getReadableStringRepForIndex(i) + "\n");
 		}
+		this.print("----\n");
 	},
 	receiveResponse_fEqualTo: function(a, b){
 		if(a instanceof Array && a[0] == b){
@@ -195,6 +203,17 @@ MGDatabaseServerConsole.prototype = {
 		this.print("> get All Atom element\n");
 		this.print("**** " + Date.now() + " Query sended.\n");
 	},
+	getAtomElementByID: function(id){
+		var that = this;
+		try{
+			this.db.getAtomElementByID(id, function(sc, str){ that.receiveResponse(sc, str) });
+		} catch(e){
+			this.print(e + "\n");
+			return;
+		}
+		this.print("> get Atom element by ID: " + id + "\n");
+		this.print("**** " + Date.now() + " Query sended.\n");
+	}
 };
 
 </script>
@@ -209,22 +228,27 @@ MGDatabaseServerConsole.prototype = {
 </div>
 
 <div class="container" style="padding-top: 64px;">
+	
 	<h4>Query</h4>
 	<h5>Add Atom Element</h5>
+	
 	<div class="input-group">
 	<input id="ncontBox" type="text" class="form-control" placeholder="New Contents">
 	<span class="input-group-btn"><button id="btn_new_node" class="btn btn-primary" type="button">Add</button></span>
 	</div>
+	
 	<h5>Get Atom Element by ID</h5>
+	
 	<div class="input-group">
-	<input id="ncontBox" type="text" class="form-control" placeholder="New Contents">
-	<span class="input-group-btn"><button id="btn_new_node" class="btn btn-primary" type="button">Add</button></span>
+	<input id="atomIdBox" type="text" class="form-control" placeholder="New Contents">
+	<span class="input-group-btn"><button id="btn_get_atom_id" class="btn btn-primary" type="button">Get</button></span>
 	</div>
+	<br />
 	<button id="btn_get_all_atom" class="btn btn-primary" type="button">GetAllAtomElement</button>
 	<h4>Input</h4>
 	<textarea class="form-control" id="inputBox"></textarea>
 	<h4>Output</h4>
-	<textarea class="form-control" id="outputBox" style="height: 500px;"></textarea>
+	<textarea class="form-control" id="outputBox" style="height: 300px;"></textarea>
 </div>
 </body>
 </html>

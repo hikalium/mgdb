@@ -96,13 +96,14 @@ define("QUERY_SELECT_Question_LATEST", "
 ");
 */
 //
-/*
-define("QUERY_SELECT_User_uid", "
-	SELECT hex(uid) 
-	from User 
-	WHERE class=upper(?) AND number=?
+
+define("QUERY_SELECT_AtomElement_eid", "
+	SELECT contents 
+	from AtomElement 
+	WHERE eid=unhex(replace(?, '-', ''))
 ");
-define("QUERY_SELECT_User_uid_TYPES", "si");
+define("QUERY_SELECT_AtomElement_eid_TYPES", "s");
+/*
 //
 define("QUERY_SELECT_User_info_BY_uid", "
 	SELECT class, number, name 

@@ -42,13 +42,7 @@ NetworkManager.prototype = {
 		var that = this;
 		q.onreadystatechange = function(){
 			if(q.readyState == 4){
-				if(q.status == 0){
-					callback(q.status, q.statusText, null);
-				}else if((200 <= q.status && q.status < 300) || (q.status == 304)){
-					callback(q.status, q.statusText, q.responseText);
-				}else{
-					callback(q.status, q.statusText, null);
-				}
+				callback(q.status, q.statusText, q.responseText);
 			}
 		};
 		q.open(mode, url, true);

@@ -88,6 +88,31 @@ function db_getAllAtomElement($db)
 	return $retv;
 }
 
+function db_getAtomElementByID($db, $eid)
+{
+	// $retv: [0, found, contents]
+	// $retv: [errno, errstr]
+	$retv = Array();
+	$stmt = $db->prepare(QUERY_SELECT_AtomElement_eid);
+	$stmt->bind_param(QUERY_SELECT_AtomElement_eid_TYPES, $eid);
+	$stmt->execute();
+	//
+	$stmt->store_result();
+	$retv[0] = $stmt->errno;
+	if($stmt->errno == 0){
+		$retv[1] = $stmt->num_rows;
+		if($stmt->num_rows != 0){
+			$stmt->bind_result($contents);
+			$stmt->fetch();
+			$retv[2] = $contents;
+		}
+	} else{
+		$retv[1] = $stmt->error;
+	}
+	$stmt->close();
+	return $retv;
+}
+
 /*
 function db_removeUser($db, $uid)
 {

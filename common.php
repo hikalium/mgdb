@@ -14,8 +14,7 @@ function elementListEnd(){
 	echo("]");
 }
 
-function echoAtomElement($idStr, $contents)
-{
+function echoAtomElement($idStr, $contents){
 	echo('["' . $idStr . '", "' . rawurlencode($contents) . '"],' . "\n");
 }
 
@@ -23,8 +22,7 @@ function echoAtomElement($idStr, $contents)
 //
 // UUID
 //
-function getFormedUUIDString($str)
-{
+function getFormedUUIDString($str){
 	$str = strtolower($str);
 	return (
 	substr($str, 0, 8) . "-" . 
@@ -35,7 +33,7 @@ function getFormedUUIDString($str)
 	);
 }
 
-function uuidv4() {
+function uuidv4(){
 	// from http://www.php.net/manual/en/function.uniqid.php#94959
 	return sprintf( '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
 	// 32 bits for "time_low"
@@ -58,9 +56,25 @@ function uuidv4() {
 	);
 }
 
+function verifyUUIDString($idStr){
+	// retv: valid UUID string
+	$idStr = strtolower($idStr);
+	$idStr = trim($idStr);
+	$regex = "/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89AB][0-9a-f]{3}-[0-9a-f]{12}$/i";
+	if(preg_match($regex, $idStr) !== 1){
+		return false;
+	}
+	return $idStr;
+}
+
+//
+// Error reporting
+//
+
 define("HTTP_STATUS_OK",					"200");
 define("HTTP_STATUS_CREATED",				"201");
 define("HTTP_STATUS_BAD_REQUEST",			"400");
+define("HTTP_STATUS_NOT_FOUND",				"404");
 define("HTTP_STATUS_INTERNAL_SERVER_ERROR",	"500");
 define("HTTP_STATUS_NOT_IMPLEMENTED",		"501");
 function reportError($ecode, $estr){
