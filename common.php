@@ -7,17 +7,53 @@ define("UUID_ServerTimestamp",			"3f5f1aee-40e9-48f3-b047-b9e51f12015c");
 
 function elementListBegin(){
 	echo("[\n");
-	echoAtomElement(UUID_ServerTimestamp, microtime());
+	$ts = new MGDBAtom(microtime(), UUID_ServerTimestamp);
+	$ts->echoElement();
 }
 
 function elementListEnd(){
 	echo("]");
 }
 
-function echoAtomElement($idStr, $contents){
-	echo('["' . $idStr . '", "' . rawurlencode($contents) . '"],' . "\n");
+class MGDBAtom
+{
+	public $eid;
+	public $contents;
+	public $createDate;
+	public $lastModifiedDate;
+	//
+	function __construct($contents, $eid, $cDate = false, $mDate = false){
+		$this->eid = $eid;
+		$this->contents = $contents;
+		$this->createDate = $cDate ? $cDate : date(DATE_ATOM);
+		$this->lastModifiedDate = $mDate ? $mDate : date(DATE_ATOM);
+	}
+	public function echoElement() {
+        echo('["' . $this->eid . '", "' . rawurlencode($this->contents) . '"],' . "\n");
+    }
 }
 
+class MGDBRelation
+{
+	public $eid;
+	public $relid;
+	public $e0id;
+	public $e1id;
+	public $createDate;
+	public $lastModifiedDate;
+	//
+	function __construct($e0id, $relid, $e1id, $eid, $cDate = false, $mDate = false){
+		$this->eid = $eid;
+		$this->relid = $relid;
+		$this->e0id = $e0id;
+		$this->e1id = $e1id;
+		$this->createDate = $cDate ? $cDate : date(DATE_ATOM);
+		$this->lastModifiedDate = $mDate ? $mDate : date(DATE_ATOM);
+	}
+	public function echoElement() {
+        echo('["' . $this->eid . '", "' . $this->relid . '", "' . $this->e0id . '", "' . $this->e1id . '"],' . "\n");
+    }
+}
 
 //
 // UUID

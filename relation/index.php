@@ -7,7 +7,7 @@ if($_SERVER["REQUEST_METHOD"] !== "GET"){
 }
 
 $db = connectDB();
-$retv = db_getAllAtomElement($db);
+$retv = db_getAllRelationElement($db);
 if($retv[0] != 0){
 	reportError(HTTP_STATUS_INTERNAL_SERVER_ERROR, $retv[1]);
 }

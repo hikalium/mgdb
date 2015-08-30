@@ -80,6 +80,9 @@ CREATE TABLE IF NOT EXISTS ClassMember (
 define("QUERY_SELECT_ALL_AtomElement", "
 	select hex(eid), contents, createDate, lastModifiedDate from AtomElement
 ");
+define("QUERY_SELECT_ALL_RelationElement", "
+	SELECT hex(eid), hex(relid), hex(e0id), hex(e1id), createDate, lastModifiedDate FROM RelationElement
+");
 /*
 define("QUERY_SELECT_ALL_Question", "
 	select hex(qid), createDate, lastModifiedDate, questionHTML, description from Question order by UNIX_TIMESTAMP(lastModifiedDate) DESC

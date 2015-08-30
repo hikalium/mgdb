@@ -40,7 +40,7 @@ function fixDB($db)
 //
 
 //
-// Add / Update / Remove
+// Atom
 //
 function db_addAtomElement($db, $contents)
 {
@@ -79,7 +79,7 @@ function db_getAllAtomElement($db)
 		$stmt->bind_result($raweid, $contents, $cDate, $mDate);
 		while($stmt->fetch()){
 			$eid = getFormedUUIDString($raweid);
-			$retv[] = Array($eid, $contents, $cDate, $mDate);
+			$retv[] = new MGDBAtom($contents, $eid, $cDate, $mDate);
 		}
 	} else{
 		$retv[] = $stmt->error;
@@ -108,6 +108,37 @@ function db_getAtomElementByID($db, $eid)
 		}
 	} else{
 		$retv[1] = $stmt->error;
+	}
+	$stmt->close();
+	return $retv;
+}
+
+//
+// Relation
+//
+
+function db_getAllRelationElement($db)
+{
+	// [0, [$eid, $relid, $e0id, $e1id, $cDate, $mDate], ...]
+	// or
+	// [$stmt->errno, $stmt->error]
+	$retv = Array();
+	$stmt = $db->prepare(QUERY_SELECT_ALL_RelationElement);
+	$stmt->execute();
+	//
+	$stmt->store_result();
+	$retv[] = $stmt->errno;
+	if($stmt->errno == 0){
+		$stmt->bind_result($raweid, $rawrelid, $rawe0id, $rawe1id, $cDate, $mDate);
+		while($stmt->fetch()){
+			$eid = getFormedUUIDString($raweid);
+			$relid = getFormedUUIDString($rawrelid);
+			$e0id = getFormedUUIDString($rawe0id);
+			$e1id = getFormedUUIDString($rawe1id);
+			$retv[] = new MGDBRelation($e0id, $relid, $e1id, $eid, $cDate, $mDate);
+		}
+	} else{
+		$retv[] = $stmt->error;
 	}
 	$stmt->close();
 	return $retv;
