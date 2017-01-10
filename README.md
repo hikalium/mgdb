@@ -1,0 +1,2 @@
+# mgdb
+Mind Graph Database
